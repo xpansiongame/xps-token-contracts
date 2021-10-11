@@ -1,0 +1,46 @@
+{
+  "name": "xps-token-contracts",
+  "version": "1.0.0",
+  "description": "xpansion token",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "optimize": "npx truffle run contract-size --checkMaxSize",
+    "compile": "npx truffle compile",
+    "migrate": "npx truffle migrate --network bsc_testnet",
+    "test": "npx truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xpansiongame/xps-token-contracts.git"
+  },
+  "keywords": [
+    "ERC20",
+    "Ethereum",
+    "EOS",
+    "Defi",
+    "Decentralized",
+    "Finance"
+  ],
+  "author": "Xpansion-team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xpansiongame/xps-token-contracts/issues"
+  },
+  "homepage": "https://github.com/xpansiongame/xps-token-contracts#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.3.0",
+    "@truffle/hdwallet-provider": "^1.4.0",
+    "dotenv": "^8.2.0",
+    "openzeppelin-test-helpers": "^0.5.1",
+    "truffle": "^5.4.14",
+    "verify": "^0.1.2",
+    "solc": "0.7.0"
+  },
+  "devDependencies": {
+    "truffle-plugin-verify": "^0.5.8",
+    "truffle-contract-size": "^2.0.1"
+  }
+}
