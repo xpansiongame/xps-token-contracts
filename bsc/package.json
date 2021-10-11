@@ -29,7 +29,7 @@
   "bugs": {
     "url": "https://github.com/xpansiongame/xps-token-contracts/issues"
   },
-  "homepage": "https://github.com/xpansiongame/xps-token-contracts#readme",
+  "homepage": "https://github.com/sotanext-team/xpansion-contracts/blob/main/README.md",
   "dependencies": {
     "@openzeppelin/contracts": "^3.3.0",
     "@truffle/hdwallet-provider": "^1.4.0",
