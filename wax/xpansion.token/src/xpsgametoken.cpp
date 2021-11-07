@@ -1,9 +1,8 @@
-// #include <xpansion.token/xpansion.token.hpp>
 #include "xpsgametoken.hpp"
 
 namespace eosio {
 
-void xpsgametoken::create( const name&   issuer,
+void token::create( const name&   issuer,
                     const asset&  maximum_supply )
 {
     require_auth( get_self() );
@@ -11,7 +10,10 @@ void xpsgametoken::create( const name&   issuer,
     auto sym = maximum_supply.symbol;
     check( sym.is_valid(), "invalid symbol name" );
     check( maximum_supply.is_valid(), "invalid supply");
-    check( maximum_supply.amount > 0, "max-supply must be positive");
+    check(maximum_supply.symbol.precision() == PRECISION, "Symbol precision must be 6");
+    if(sym == XPS){
+      check( maximum_supply.amount == XPS_HARD_CAP * DECIMALS, "XPS maximum_supply must be 1 bilion token");
+    }
 
     stats statstable( get_self(), sym.code().raw() );
     auto existing = statstable.find( sym.code().raw() );
@@ -25,37 +27,44 @@ void xpsgametoken::create( const name&   issuer,
 }
 
 
-void xpsgametoken::issue( const name& to, const asset& quantity, const string& memo )
+void token::issue( const name& to, const asset& quantity, const string& memo )
 {
-    auto sym = quantity.symbol;
-    check( sym.is_valid(), "invalid symbol name" );
-    check( memo.size() <= 256, "memo has more than 256 bytes" );
+   auto sym = quantity.symbol;
+   check( sym.is_valid(), "invalid symbol name" );
+   check( memo.size() <= 256, "memo has more than 256 bytes" );
 
-    stats statstable( get_self(), sym.code().raw() );
-    auto existing = statstable.find( sym.code().raw() );
-    check( existing != statstable.end(), "token with symbol does not exist, create token before issue" );
-    const auto& st = *existing;
-    check( to == st.issuer, "tokens can only be issued to issuer account" );
+   stats statstable( get_self(), sym.code().raw() );
+   auto existing = statstable.find( sym.code().raw() );
+   check( existing != statstable.end(), "token with symbol does not exist, create token before issue" );
+   const auto& st = *existing;
 
-    check( is_account( to ), "to account does not exist");
-    require_recipient( to );
+   check( is_account( to ), "to account does not exist");
+   require_recipient( to );
 
-    require_auth( st.issuer );
-    check( quantity.is_valid(), "invalid quantity" );
-    check( quantity.amount > 0, "must issue positive quantity" );
+   require_auth( st.issuer );
+   check( quantity.is_valid(), "invalid quantity" );
+   check( quantity.amount > 0, "must issue positive quantity" );
 
-    check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
-    check( quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
+   check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
+   if(sym == XPS){
+      check( to == st.issuer, "tokens can only be issued to issuer account" );
+      check( quantity.amount <= st.max_supply.amount - st.supply.amount, "XPS quantity exceeds available supply");
+   }
 
-    statstable.modify( st, same_payer, [&]( auto& s ) {
-       s.supply += quantity;
-    });
+   statstable.modify( st, same_payer, [&]( auto& s ) {
+      s.supply += quantity;
+   });
 
-    add_balance( st.issuer, quantity, st.issuer );
+   if(sym == XPS){
+      add_balance( st.issuer, quantity, st.issuer );
+   }else{
+      auto payer = has_auth( to ) ? to : st.issuer;
+      add_balance( to, quantity, payer );
+   }
 
 }
 
-void xpsgametoken::retire( const asset& quantity, const string& memo )
+void token::retire( const asset& quantity, const string& memo )
 {
     auto sym = quantity.symbol;
     check( sym.is_valid(), "invalid symbol name" );
@@ -80,7 +89,7 @@ void xpsgametoken::retire( const asset& quantity, const string& memo )
 
 }
 
-void xpsgametoken::transfer( const name&    from,
+void token::transfer( const name&    from,
                       const name&    to,
                       const asset&   quantity,
                       const string&  memo )
@@ -106,7 +115,7 @@ void xpsgametoken::transfer( const name&    from,
     add_balance( to, quantity, payer );
 }
 
-void xpsgametoken::sub_balance( const name& owner, const asset& value ) {
+void token::sub_balance( const name& owner, const asset& value ) {
    accounts from_acnts( get_self(), owner.value );
 
    const auto& from = from_acnts.get( value.symbol.code().raw(), "no balance object found" );
@@ -117,7 +126,7 @@ void xpsgametoken::sub_balance( const name& owner, const asset& value ) {
       });
 }
 
-void xpsgametoken::add_balance( const name& owner, const asset& value, const name& ram_payer )
+void token::add_balance( const name& owner, const asset& value, const name& ram_payer )
 {
    accounts to_acnts( get_self(), owner.value );
    auto to = to_acnts.find( value.symbol.code().raw() );
@@ -132,7 +141,7 @@ void xpsgametoken::add_balance( const name& owner, const asset& value, const nam
    }
 }
 
-void xpsgametoken::open( const name& owner, const symbol& symbol, const name& ram_payer )
+void token::open( const name& owner, const symbol& symbol, const name& ram_payer )
 {
    require_auth( ram_payer );
 
@@ -152,7 +161,7 @@ void xpsgametoken::open( const name& owner, const symbol& symbol, const name& ra
    }
 }
 
-void xpsgametoken::close( const name& owner, const symbol& symbol )
+void token::close( const name& owner, const symbol& symbol )
 {
    require_auth( owner );
    accounts acnts( get_self(), owner.value );

@@ -4,6 +4,7 @@
 #include <eosio/eosio.hpp>
 
 #include <string>
+#include <cmath>
 
 namespace eosiosystem {
    class system_contract;
@@ -22,7 +23,7 @@ namespace eosio {
     * 
     * Similarly, the `stats` multi-index table, holds instances of `currency_stats` objects for each row, which contains information about current supply, maximum supply, and the creator account for a symbol token. The `stats` table is scoped to the token symbol.  Therefore, when one queries the `stats` table for a token symbol the result is one single entry/row corresponding to the queried symbol token if it was previously created, or nothing, otherwise.
     */
-   class [[eosio::contract("xpansion.token")]] token : public contract {
+   class [[eosio::contract("xpsgametoken")]] token : public contract {
       public:
          using contract::contract;
 
@@ -122,6 +123,16 @@ namespace eosio {
          using open_action = eosio::action_wrapper<"open"_n, &token::open>;
          using close_action = eosio::action_wrapper<"close"_n, &token::close>;
       private:
+
+         static constexpr uint8_t PRECISION = 6;
+
+         const uint64_t DECIMALS = pow(10, PRECISION);
+
+         const symbol XPS = symbol("XPS", PRECISION);
+
+         static constexpr uint64_t XPS_HARD_CAP = 1000000000; //1b XPS Token
+
+
          struct [[eosio::table]] account {
             asset    balance;
 
